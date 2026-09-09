@@ -9,15 +9,12 @@ function initialsOf(name: string): string {
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || 'U';
 }
 
-function isEmail(identifier: string): boolean {
-  return /\S+@\S+\.\S+/.test(identifier);
-}
-
-function mockUserFrom(name: string, identifier: string, state?: string, lga?: string): User {
+function mockUserFrom(name: string, email: string, phone = '', state?: string, lga?: string): User {
   return {
     id: `u_${Date.now()}`,
     name,
-    phoneOrEmail: identifier,
+    email,
+    phone,
     avatarInitials: initialsOf(name),
     role: 'BUYER',
     isVerifiedSeller: false,
@@ -31,7 +28,8 @@ function mockUserFrom(name: string, identifier: string, state?: string, lga?: st
 interface ProfileRow {
   id: string;
   name: string;
-  phone_or_email: string;
+  email: string;
+  phone: string | null;
   avatar_url: string | null;
   role: User['role'];
   is_verified_seller: boolean;
@@ -45,7 +43,8 @@ function profileToUser(profile: ProfileRow): User {
   return {
     id: profile.id,
     name: profile.name,
-    phoneOrEmail: profile.phone_or_email,
+    email: profile.email,
+    phone: profile.phone ?? '',
     avatarInitials: initialsOf(profile.name),
     avatarUrl: profile.avatar_url ?? undefined,
     role: profile.role,
@@ -72,17 +71,17 @@ async function fetchProfile(userId: string): Promise<User> {
 export async function login(payload: AuthCredentials): Promise<User> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
-    const credentials = isEmail(payload.identifier)
-      ? { email: payload.identifier, password: payload.password }
-      : { phone: payload.identifier, password: payload.password };
-    const { data, error } = await supabase.auth.signInWithPassword(credentials);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: payload.email,
+      password: payload.password,
+    });
     if (error || !data.user) throw new Error(error?.message ?? 'Login failed.');
     const user = await fetchProfile(data.user.id);
     writeLocalStorage(SESSION_KEY, user);
     return user;
   }
 
-  const user = mockUserFrom('Demo User', payload.identifier);
+  const user = mockUserFrom('Demo User', payload.email);
   writeLocalStorage(SESSION_KEY, user);
   return user;
 }
@@ -90,24 +89,24 @@ export async function login(payload: AuthCredentials): Promise<User> {
 export async function register(payload: RegisterPayload): Promise<User> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
-    const metadata = { name: payload.name, state: payload.state, lga: payload.lga };
-    const credentials = isEmail(payload.identifier)
-      ? { email: payload.identifier, password: payload.password, options: { data: metadata } }
-      : { phone: payload.identifier, password: payload.password, options: { data: metadata } };
-    const { data, error } = await supabase.auth.signUp(credentials);
+    const { data, error } = await supabase.auth.signUp({
+      email: payload.email,
+      password: payload.password,
+      options: { data: { name: payload.name, phone: payload.phone, state: payload.state, lga: payload.lga } },
+    });
     if (error) throw new Error(error.message);
     if (!data.user) throw new Error('Registration failed.');
     if (!data.session) {
-      // Email/phone confirmation is required before a session exists. Surface
-      // this clearly instead of pretending the account is already logged in.
-      throw new Error('Account created — check your email/phone to confirm it, then log in.');
+      // Email confirmation is required before a session exists. Surface this
+      // clearly instead of pretending the account is already logged in.
+      throw new Error('Account created — check your email to confirm it, then log in.');
     }
     const user = await fetchProfile(data.user.id);
     writeLocalStorage(SESSION_KEY, user);
     return user;
   }
 
-  const user = mockUserFrom(payload.name, payload.identifier, payload.state, payload.lga);
+  const user = mockUserFrom(payload.name, payload.email, payload.phone, payload.state, payload.lga);
   writeLocalStorage(SESSION_KEY, user);
   return user;
 }
@@ -143,7 +142,10 @@ export async function updateAvatar(user: User, avatarUrl: string): Promise<User>
   return updated;
 }
 
-export async function updateProfile(user: User, patch: Partial<Pick<User, 'name' | 'state' | 'lga'>>): Promise<User> {
+export async function updateProfile(
+  user: User,
+  patch: Partial<Pick<User, 'name' | 'phone' | 'state' | 'lga'>>,
+): Promise<User> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
     const { data, error } = await supabase

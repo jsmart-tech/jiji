@@ -30,7 +30,8 @@ function AuthView() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const { login, register } = useAuthStore();
   const [name, setName] = useState('');
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [state, setState] = useState('');
   const [lga, setLga] = useState('');
@@ -44,8 +45,8 @@ function AuthView() {
     setPending(true);
     setError(null);
     try {
-      if (mode === 'login') await login({ identifier, password });
-      else await register({ name, identifier, password, state, lga });
+      if (mode === 'login') await login({ email, password });
+      else await register({ name, email, phone, password, state, lga });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -78,6 +79,14 @@ function AuthView() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Full name"
+              required
+              className="input"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              type="tel"
+              placeholder="Phone number"
               required
               className="input"
             />
@@ -115,9 +124,10 @@ function AuthView() {
           </>
         )}
         <input
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          placeholder="Phone or email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          placeholder="Email"
           required
           className="input"
         />
@@ -189,7 +199,8 @@ function ProfileDashboard() {
             {user!.name}
             {user!.isVerifiedSeller && <ShieldCheck className="h-4 w-4 text-brand" />}
           </p>
-          <p className="text-xs text-ink-muted">{user!.phoneOrEmail}</p>
+          <p className="text-xs text-ink-muted">{user!.email}</p>
+          {user!.phone && <p className="text-xs text-ink-muted">{user!.phone}</p>}
           {user!.lga && user!.state && (
             <p className="text-xs text-ink-muted">{user!.lga}, {user!.state}</p>
           )}
@@ -256,6 +267,7 @@ function ProfileDashboard() {
 function SettingsPanel() {
   const { user, updateProfile } = useAuthStore();
   const [name, setName] = useState(user!.name);
+  const [phone, setPhone] = useState(user!.phone ?? '');
   const [state, setState] = useState(user!.state ?? '');
   const [lga, setLga] = useState(user!.lga ?? '');
   const [saving, setSaving] = useState(false);
@@ -267,7 +279,7 @@ function SettingsPanel() {
     setSaving(true);
     setJustSaved(false);
     try {
-      await updateProfile({ name: name.trim(), state, lga });
+      await updateProfile({ name: name.trim(), phone: phone.trim(), state, lga });
       setJustSaved(true);
     } finally {
       setSaving(false);
@@ -283,8 +295,12 @@ function SettingsPanel() {
           <input value={name} onChange={(e) => setName(e.target.value)} className="input" required minLength={2} />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">Phone / Email</span>
-          <input value={user!.phoneOrEmail} disabled className="input opacity-60" />
+          <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">Email</span>
+          <input value={user!.email} disabled className="input opacity-60" />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">Phone Number</span>
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" className="input" required />
         </label>
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1.5">

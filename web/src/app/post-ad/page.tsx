@@ -76,7 +76,7 @@ export default function PostAdPage() {
         attributes: [],
         sellerId: user.id,
         sellerName: user.name,
-        sellerPhone: user.phoneOrEmail,
+        sellerPhone: user.phone,
       },
       {
         onSuccess: (listing) => {

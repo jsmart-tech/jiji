@@ -13,7 +13,8 @@ create extension if not exists pgcrypto;
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
-  phone_or_email text not null,
+  email text not null,
+  phone text,
   avatar_url text,
   role text not null default 'BUYER' check (role in ('BUYER','SELLER','ADMIN','SUPER_ADMIN')),
   is_verified_seller boolean not null default false,
@@ -41,11 +42,12 @@ create policy "Users can insert own profile"
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, phone_or_email, state, lga)
+  insert into public.profiles (id, name, email, phone, state, lga)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', 'New User'),
-    coalesce(new.email, new.phone, ''),
+    coalesce(new.email, ''),
+    new.raw_user_meta_data->>'phone',
     new.raw_user_meta_data->>'state',
     new.raw_user_meta_data->>'lga'
   )

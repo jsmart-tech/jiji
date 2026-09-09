@@ -14,7 +14,8 @@ export type MessageType = 'TEXT' | 'IMAGE' | 'LISTING_SHARE' | 'SYSTEM';
 export interface User {
   id: string;
   name: string;
-  phoneOrEmail: string;
+  email: string;
+  phone: string;
   avatarInitials: string;
   avatarUrl?: string; // data URL or hosted image; falls back to initials when unset
   role: UserRole;
@@ -125,13 +126,14 @@ export interface LocationState {
 }
 
 export interface AuthCredentials {
-  identifier: string;
+  email: string;
   password: string;
 }
 
 export interface RegisterPayload {
   name: string;
-  identifier: string;
+  email: string;
+  phone: string;
   password: string;
   state: string;
   lga: string;
