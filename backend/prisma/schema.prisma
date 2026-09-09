@@ -1,0 +1,597 @@
+// =============================================================================
+// Prisma Schema — Jiji Classifieds Marketplace
+// =============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  APPLE
+  PHONE
+}
+
+enum VerificationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  SOLD
+  EXPIRED
+  REMOVED
+  PENDING_REVIEW
+}
+
+enum ListingCondition {
+  NEW
+  USED
+  REFURBISHED
+  FOR_PARTS
+}
+
+enum PriceType {
+  FIXED
+  NEGOTIABLE
+  FREE
+  ON_REQUEST
+  SWAP
+}
+
+enum PromotionTier {
+  NONE
+  FEATURED
+  TOP_AD
+  VIP
+  URGENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  LOCATION_SHARE
+  LISTING_SHARE
+  SYSTEM
+}
+
+enum ChatRoomStatus {
+  ACTIVE
+  ARCHIVED
+  BLOCKED
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  LISTING_INQUIRY
+  LISTING_SOLD
+  PROMOTION_EXPIRY
+  ACCOUNT_VERIFIED
+  NEW_REVIEW
+  PRICE_DROP
+  SYSTEM
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+enum OtpPurpose {
+  PHONE_VERIFICATION
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
+}
+
+// ─── User & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id                String             @id @default(cuid())
+  email             String?            @unique
+  phone             String?            @unique
+  passwordHash      String?
+  firstName         String
+  lastName          String
+  username          String             @unique
+  avatarUrl         String?
+  bio               String?
+  role              UserRole           @default(BUYER)
+  isEmailVerified   Boolean            @default(false)
+  isPhoneVerified   Boolean            @default(false)
+  isActive          Boolean            @default(true)
+  isBanned          Boolean            @default(false)
+  banReason         String?
+  lastSeenAt        DateTime?
+  fcmToken          String?            // Firebase push token
+
+  // Seller-specific
+  isVerifiedSeller  Boolean            @default(false)
+  sellerVerification SellerVerification?
+  sellerScore       Float              @default(0)
+
+  // Relations
+  listings          Listing[]
+  reviews           Review[]           @relation("ReviewReceiver")
+  givenReviews      Review[]           @relation("ReviewGiver")
+  buyerRooms        ChatRoom[]         @relation("BuyerRooms")
+  sellerRooms       ChatRoom[]         @relation("SellerRooms")
+  messages          Message[]
+  notifications     Notification[]
+  savedListings     SavedListing[]
+  devices           UserDevice[]
+  oauthAccounts     OAuthAccount[]
+  refreshTokens     RefreshToken[]
+  location          UserLocation?
+  transactions      Transaction[]
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([email])
+  @@index([phone])
+  @@index([username])
+  @@index([role])
+  @@map("users")
+}
+
+model OAuthAccount {
+  id         String       @id @default(cuid())
+  userId     String
+  provider   AuthProvider
+  providerId String
+  email      String?
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([provider, providerId])
+  @@map("oauth_accounts")
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  deviceInfo  String?
+  ipAddress   String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model OtpVerification {
+  id          String     @id @default(cuid())
+  target      String     // phone or email
+  code        String
+  purpose     OtpPurpose
+  expiresAt   DateTime
+  isUsed      Boolean    @default(false)
+  attempts    Int        @default(0)
+
+  createdAt   DateTime   @default(now())
+
+  @@index([target, purpose])
+  @@map("otp_verifications")
+}
+
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceId    String
+  platform    String   // ios | android
+  fcmToken    String?
+  appVersion  String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, deviceId])
+  @@map("user_devices")
+}
+
+// ─── Seller KYC ──────────────────────────────────────────────────────────────
+
+model SellerVerification {
+  id             String             @id @default(cuid())
+  userId         String             @unique
+  status         VerificationStatus @default(PENDING)
+  documentType   String             // national_id | drivers_license | passport
+  documentNumber String
+  documentFront  String             // S3 URL
+  documentBack   String?            // S3 URL
+  selfieUrl      String?            // S3 URL
+  adminNotes     String?
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@map("seller_verifications")
+}
+
+// ─── Location ────────────────────────────────────────────────────────────────
+
+model Country {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  code      String  @unique // NG, GH, KE
+  currency  String  @default("NGN")
+  states    State[]
+
+  @@map("countries")
+}
+
+model State {
+  id        String  @id @default(cuid())
+  name      String
+  code      String
+  countryId String
+  country   Country @relation(fields: [countryId], references: [id])
+  lgas      Lga[]
+  listings  Listing[]
+
+  @@unique([name, countryId])
+  @@map("states")
+}
+
+model Lga {
+  id       String    @id @default(cuid())
+  name     String
+  stateId  String
+  state    State     @relation(fields: [stateId], references: [id])
+  cities   City[]
+  listings Listing[]
+
+  @@unique([name, stateId])
+  @@map("lgas")
+}
+
+model City {
+  id       String    @id @default(cuid())
+  name     String
+  lgaId    String
+  lga      Lga       @relation(fields: [lgaId], references: [id])
+  listings Listing[]
+
+  @@unique([name, lgaId])
+  @@map("cities")
+}
+
+model UserLocation {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  latitude  Float?
+  longitude Float?
+  address   String?
+  cityId    String?
+  lgaId     String?
+  stateId   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("user_locations")
+}
+
+// ─── Categories ──────────────────────────────────────────────────────────────
+
+model Category {
+  id           String             @id @default(cuid())
+  name         String
+  slug         String             @unique
+  description  String?
+  iconUrl      String?
+  imageUrl     String?
+  parentId     String?
+  parent       Category?          @relation("CategoryTree", fields: [parentId], references: [id])
+  children     Category[]         @relation("CategoryTree")
+  attributes   CategoryAttribute[]
+  listings     Listing[]
+  sortOrder    Int                @default(0)
+  isActive     Boolean            @default(true)
+
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([slug])
+  @@index([parentId])
+  @@map("categories")
+}
+
+model CategoryAttribute {
+  id           String   @id @default(cuid())
+  categoryId   String
+  name         String   // e.g., "Brand", "Model", "Mileage"
+  slug         String
+  type         String   // text | number | select | multi_select | boolean | range
+  options      Json?    // for select/multi_select: ["Toyota","Honda","BMW"]
+  isRequired   Boolean  @default(false)
+  isFilterable Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, slug])
+  @@map("category_attributes")
+}
+
+// ─── Listings ────────────────────────────────────────────────────────────────
+
+model Listing {
+  id              String           @id @default(cuid())
+  title           String
+  slug            String           @unique
+  description     String
+  price           Decimal?         @db.Decimal(15, 2)
+  currency        String           @default("NGN")
+  priceType       PriceType        @default(FIXED)
+  condition       ListingCondition @default(USED)
+  status          ListingStatus    @default(PENDING_REVIEW)
+  promotionTier   PromotionTier    @default(NONE)
+  viewCount       Int              @default(0)
+  chatCount       Int              @default(0)
+  isFeatured      Boolean          @default(false)
+
+  // Relations
+  sellerId        String
+  seller          User             @relation(fields: [sellerId], references: [id])
+  categoryId      String
+  category        Category         @relation(fields: [categoryId], references: [id])
+  media           ListingMedia[]
+  attributes      ListingAttribute[]
+  chatRooms       ChatRoom[]
+  savedBy         SavedListing[]
+  promotions      ListingPromotion[]
+  reviews         Review[]
+
+  // Location
+  stateId         String?
+  state           State?           @relation(fields: [stateId], references: [id])
+  lgaId           String?
+  lga             Lga?             @relation(fields: [lgaId], references: [id])
+  cityId          String?
+  city            City?            @relation(fields: [cityId], references: [id])
+  latitude        Float?
+  longitude       Float?
+  address         String?
+
+  // Timestamps
+  expiresAt       DateTime?
+  publishedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([promotionTier])
+  @@index([stateId])
+  @@index([createdAt(sort: Desc)])
+  @@map("listings")
+}
+
+model ListingMedia {
+  id          String    @id @default(cuid())
+  listingId   String
+  url         String
+  thumbnailUrl String?
+  type        MediaType @default(IMAGE)
+  mimeType    String?
+  size        Int?
+  width       Int?
+  height      Int?
+  sortOrder   Int       @default(0)
+  isCover     Boolean   @default(false)
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([listingId])
+  @@map("listing_media")
+}
+
+model ListingAttribute {
+  id          String  @id @default(cuid())
+  listingId   String
+  attributeId String
+  value       String
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, attributeId])
+  @@map("listing_attributes")
+}
+
+model SavedListing {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+  @@map("saved_listings")
+}
+
+// ─── Promotions ──────────────────────────────────────────────────────────────
+
+model PromotionPlan {
+  id           String             @id @default(cuid())
+  name         String             @unique
+  tier         PromotionTier
+  price        Decimal            @db.Decimal(10, 2)
+  currency     String             @default("NGN")
+  durationDays Int
+  description  String?
+  features     Json               // ["Top placement","Bold title","VIP badge"]
+  isActive     Boolean            @default(true)
+  promotions   ListingPromotion[]
+
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@map("promotion_plans")
+}
+
+model ListingPromotion {
+  id          String        @id @default(cuid())
+  listingId   String
+  planId      String
+  startsAt    DateTime
+  expiresAt   DateTime
+  isPaid      Boolean       @default(false)
+  transactionId String?
+  listing     Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  plan        PromotionPlan @relation(fields: [planId], references: [id])
+  transaction Transaction?  @relation(fields: [transactionId], references: [id])
+
+  createdAt   DateTime      @default(now())
+
+  @@map("listing_promotions")
+}
+
+// ─── Chat ────────────────────────────────────────────────────────────────────
+
+model ChatRoom {
+  id         String         @id @default(cuid())
+  listingId  String
+  buyerId    String
+  sellerId   String
+  status     ChatRoomStatus @default(ACTIVE)
+  lastMsgAt  DateTime?
+  unreadBuyer  Int          @default(0)
+  unreadSeller Int          @default(0)
+
+  listing    Listing        @relation(fields: [listingId], references: [id])
+  buyer      User           @relation("BuyerRooms", fields: [buyerId], references: [id])
+  seller     User           @relation("SellerRooms", fields: [sellerId], references: [id])
+  messages   Message[]
+
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([listingId, buyerId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@map("chat_rooms")
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  roomId      String
+  senderId    String
+  type        MessageType @default(TEXT)
+  content     String?
+  mediaUrl    String?
+  metadata    Json?       // for listing share, location share
+  isRead      Boolean     @default(false)
+  readAt      DateTime?
+  isDeleted   Boolean     @default(false)
+
+  room        ChatRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender      User        @relation(fields: [senderId], references: [id])
+
+  createdAt   DateTime    @default(now())
+
+  @@index([roomId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("messages")
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+model Review {
+  id         String   @id @default(cuid())
+  listingId  String?
+  sellerId   String
+  giverId    String
+  rating     Int      // 1-5
+  comment    String?
+  isVerified Boolean  @default(false) // verified purchase
+
+  listing    Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  seller     User     @relation("ReviewReceiver", fields: [sellerId], references: [id])
+  giver      User     @relation("ReviewGiver", fields: [giverId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([listingId, giverId])
+  @@index([sellerId])
+  @@map("reviews")
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─── Transactions ────────────────────────────────────────────────────────────
+
+model Transaction {
+  id              String             @id @default(cuid())
+  userId          String
+  amount          Decimal            @db.Decimal(15, 2)
+  currency        String             @default("NGN")
+  reference       String             @unique
+  provider        String             // paystack | flutterwave | stripe
+  providerRef     String?
+  status          String             // pending | success | failed | refunded
+  description     String?
+  metadata        Json?
+  user            User               @relation(fields: [userId], references: [id])
+  promotions      ListingPromotion[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([reference])
+  @@map("transactions")
+}

@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Jiji",
+    "slug": "jiji-marketplace",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "jiji",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF6B35"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ng.jiji.marketplace",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Jiji needs camera access to take photos for your listings.",
+        "NSPhotoLibraryUsageDescription": "Jiji needs photo library access to upload listing images.",
+        "NSLocationWhenInUseUsageDescription": "Jiji uses your location to show nearby listings.",
+        "NSLocationAlwaysUsageDescription": "Jiji uses your location to show nearby listings.",
+        "NSMicrophoneUsageDescription": "Jiji needs microphone access for video listings."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FF6B35"
+      },
+      "package": "ng.jiji.marketplace",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-notifications", { "icon": "./assets/images/notification-icon.png", "color": "#FF6B35" }],
+      ["expo-image-picker", { "photosPermission": "Allow Jiji to access your photos." }],
+      ["expo-location", { "locationAlwaysAndWhenInUsePermission": "Allow Jiji to use your location." }],
+      ["expo-camera", { "cameraPermission": "Allow Jiji to access your camera." }]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": { "projectId": "your-eas-project-id" }
+    }
+  }
+}
