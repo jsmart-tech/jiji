@@ -13,7 +13,7 @@ function isEmail(identifier: string): boolean {
   return /\S+@\S+\.\S+/.test(identifier);
 }
 
-function mockUserFrom(name: string, identifier: string): User {
+function mockUserFrom(name: string, identifier: string, state?: string, lga?: string): User {
   return {
     id: `u_${Date.now()}`,
     name,
@@ -23,6 +23,8 @@ function mockUserFrom(name: string, identifier: string): User {
     isVerifiedSeller: false,
     rating: 0,
     memberSince: new Date().toISOString(),
+    state,
+    lga,
   };
 }
 
@@ -35,6 +37,8 @@ interface ProfileRow {
   is_verified_seller: boolean;
   rating: number;
   member_since: string;
+  state: string | null;
+  lga: string | null;
 }
 
 function profileToUser(profile: ProfileRow): User {
@@ -48,6 +52,8 @@ function profileToUser(profile: ProfileRow): User {
     isVerifiedSeller: profile.is_verified_seller,
     rating: profile.rating,
     memberSince: profile.member_since,
+    state: profile.state ?? undefined,
+    lga: profile.lga ?? undefined,
   };
 }
 
@@ -84,9 +90,10 @@ export async function login(payload: AuthCredentials): Promise<User> {
 export async function register(payload: RegisterPayload): Promise<User> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
+    const metadata = { name: payload.name, state: payload.state, lga: payload.lga };
     const credentials = isEmail(payload.identifier)
-      ? { email: payload.identifier, password: payload.password, options: { data: { name: payload.name } } }
-      : { phone: payload.identifier, password: payload.password, options: { data: { name: payload.name } } };
+      ? { email: payload.identifier, password: payload.password, options: { data: metadata } }
+      : { phone: payload.identifier, password: payload.password, options: { data: metadata } };
     const { data, error } = await supabase.auth.signUp(credentials);
     if (error) throw new Error(error.message);
     if (!data.user) throw new Error('Registration failed.');
@@ -100,7 +107,7 @@ export async function register(payload: RegisterPayload): Promise<User> {
     return user;
   }
 
-  const user = mockUserFrom(payload.name, payload.identifier);
+  const user = mockUserFrom(payload.name, payload.identifier, payload.state, payload.lga);
   writeLocalStorage(SESSION_KEY, user);
   return user;
 }
@@ -136,7 +143,7 @@ export async function updateAvatar(user: User, avatarUrl: string): Promise<User>
   return updated;
 }
 
-export async function updateProfile(user: User, patch: Partial<Pick<User, 'name'>>): Promise<User> {
+export async function updateProfile(user: User, patch: Partial<Pick<User, 'name' | 'state' | 'lga'>>): Promise<User> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
     const { data, error } = await supabase

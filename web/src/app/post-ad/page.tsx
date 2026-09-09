@@ -28,12 +28,20 @@ function canAdvance(step: number, draft: ReturnType<typeof usePostAdStore.getSta
 
 export default function PostAdPage() {
   const router = useRouter();
-  const { step, draft, setStep, reset } = usePostAdStore();
+  const { step, draft, setStep, update, reset } = usePostAdStore();
   const { user, hydrated } = useAuthStore();
   const createListing = useCreateListing();
   const StepComponent = STEP_COMPONENTS[step];
 
   useEffect(() => reset, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Default a new ad's location to the seller's registered location, so
+  // buyers can already see where to pick items up — still editable per ad.
+  useEffect(() => {
+    if (user?.state && !draft.state) {
+      update({ state: user.state, lga: user.lga ?? '' });
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (hydrated && !user) {
     return (

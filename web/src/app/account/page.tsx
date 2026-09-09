@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { LogOut, ShieldCheck, ClipboardList, Heart, Settings as SettingsIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { isSupabaseConfigured } from '@shared/lib/supabaseClient';
+import { STATES } from '@shared/mock/locations.mock';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFavoritesStore } from '@/store/useFavoritesStore';
 import { useListings } from '@/hooks/useListings';
@@ -31,9 +32,12 @@ function AuthView() {
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [state, setState] = useState('');
+  const [lga, setLga] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isSupabaseEnabled = isSupabaseConfigured();
+  const selectedState = STATES.find((s) => s.name === state);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -41,7 +45,7 @@ function AuthView() {
     setError(null);
     try {
       if (mode === 'login') await login({ identifier, password });
-      else await register({ name, identifier, password });
+      else await register({ name, identifier, password, state, lga });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -69,13 +73,46 @@ function AuthView() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {mode === 'register' && (
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full name"
-            required
-            className="input"
-          />
+          <>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Full name"
+              required
+              className="input"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={state}
+                onChange={(e) => {
+                  setState(e.target.value);
+                  setLga('');
+                }}
+                required
+                className="input"
+              >
+                <option value="" disabled>State</option>
+                {STATES.map((s) => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+              <select
+                value={lga}
+                onChange={(e) => setLga(e.target.value)}
+                required
+                disabled={!selectedState}
+                className="input disabled:opacity-50"
+              >
+                <option value="" disabled>{selectedState ? 'LGA' : 'Select state first'}</option>
+                {selectedState?.lgas.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-[11px] text-ink-muted">
+              Buyers see this on your ads, so they know where to pick items up.
+            </p>
+          </>
         )}
         <input
           value={identifier}
@@ -153,6 +190,9 @@ function ProfileDashboard() {
             {user!.isVerifiedSeller && <ShieldCheck className="h-4 w-4 text-brand" />}
           </p>
           <p className="text-xs text-ink-muted">{user!.phoneOrEmail}</p>
+          {user!.lga && user!.state && (
+            <p className="text-xs text-ink-muted">{user!.lga}, {user!.state}</p>
+          )}
         </div>
 
         <nav className="flex flex-col divide-y divide-surface-border overflow-hidden rounded-2xl border border-surface-border bg-white">
@@ -216,15 +256,18 @@ function ProfileDashboard() {
 function SettingsPanel() {
   const { user, updateProfile } = useAuthStore();
   const [name, setName] = useState(user!.name);
+  const [state, setState] = useState(user!.state ?? '');
+  const [lga, setLga] = useState(user!.lga ?? '');
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const selectedState = STATES.find((s) => s.name === state);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
     setJustSaved(false);
     try {
-      await updateProfile({ name: name.trim() });
+      await updateProfile({ name: name.trim(), state, lga });
       setJustSaved(true);
     } finally {
       setSaving(false);
@@ -243,7 +286,41 @@ function SettingsPanel() {
           <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">Phone / Email</span>
           <input value={user!.phoneOrEmail} disabled className="input opacity-60" />
         </label>
-        <Button type="submit" disabled={saving || name.trim().length < 2} className="w-fit">
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">State</span>
+            <select
+              value={state}
+              onChange={(e) => {
+                setState(e.target.value);
+                setLga('');
+              }}
+              required
+              className="input"
+            >
+              <option value="" disabled>Select a state</option>
+              {STATES.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">LGA</span>
+            <select
+              value={lga}
+              onChange={(e) => setLga(e.target.value)}
+              required
+              disabled={!selectedState}
+              className="input disabled:opacity-50"
+            >
+              <option value="" disabled>{selectedState ? 'Select an LGA' : 'Choose a state first'}</option>
+              {selectedState?.lgas.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <Button type="submit" disabled={saving || name.trim().length < 2 || !state || !lga} className="w-fit">
           {saving ? 'Saving…' : 'Save Changes'}
         </Button>
         {justSaved && <p className="text-xs font-semibold text-brand-dark">Profile updated.</p>}

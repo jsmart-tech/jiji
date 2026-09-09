@@ -17,7 +17,7 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<User>;
   logout: () => void;
   updateAvatar: (avatarUrl: string) => Promise<void>;
-  updateProfile: (patch: Partial<Pick<User, 'name'>>) => Promise<void>;
+  updateProfile: (patch: Partial<Pick<User, 'name' | 'state' | 'lga'>>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({

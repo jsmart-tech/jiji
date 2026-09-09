@@ -21,6 +21,8 @@ export interface User {
   isVerifiedSeller: boolean;
   rating: number;
   memberSince: string; // ISO date
+  state?: string;
+  lga?: string;
 }
 
 export interface Subcategory {
@@ -131,4 +133,6 @@ export interface RegisterPayload {
   name: string;
   identifier: string;
   password: string;
+  state: string;
+  lga: string;
 }

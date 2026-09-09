@@ -18,7 +18,9 @@ create table if not exists public.profiles (
   role text not null default 'BUYER' check (role in ('BUYER','SELLER','ADMIN','SUPER_ADMIN')),
   is_verified_seller boolean not null default false,
   rating numeric not null default 0,
-  member_since timestamptz not null default now()
+  member_since timestamptz not null default now(),
+  state text,
+  lga text
 );
 
 alter table public.profiles enable row level security;
@@ -39,11 +41,13 @@ create policy "Users can insert own profile"
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, phone_or_email)
+  insert into public.profiles (id, name, phone_or_email, state, lga)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', 'New User'),
-    coalesce(new.email, new.phone, '')
+    coalesce(new.email, new.phone, ''),
+    new.raw_user_meta_data->>'state',
+    new.raw_user_meta_data->>'lga'
   )
   on conflict (id) do nothing;
   return new;
