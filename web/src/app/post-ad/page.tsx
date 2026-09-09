@@ -107,7 +107,8 @@ export default function PostAdPage() {
       <Button
         size="lg"
         onClick={handleNext}
-        disabled={!canAdvance(step, draft) || createListing.isPending}
+        disabled={!canAdvance(step, draft)}
+        loading={createListing.isPending}
         className="w-full"
       >
         {step === STEP_COMPONENTS.length - 1

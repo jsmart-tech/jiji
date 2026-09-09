@@ -106,7 +106,7 @@ export default function EditListingPage() {
         <LocationStep />
       </div>
 
-      <Button size="lg" onClick={handleSave} disabled={!canSave || updateListing.isPending} className="w-full">
+      <Button size="lg" onClick={handleSave} disabled={!canSave} loading={updateListing.isPending} className="w-full">
         {updateListing.isPending ? 'Saving…' : 'Save Changes'}
       </Button>
       {updateListing.isError && (

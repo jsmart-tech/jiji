@@ -89,10 +89,20 @@ export async function login(payload: AuthCredentials): Promise<User> {
 export async function register(payload: RegisterPayload): Promise<User> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
+    // Without this, Supabase falls back to the dashboard's Site URL for the
+    // confirmation link — which sends every confirmation to whatever URL was
+    // configured there (e.g. localhost), regardless of where the signup
+    // actually happened. Pointing it at the current origin fixes that for
+    // both local dev and production.
+    const emailRedirectTo = typeof window !== 'undefined' ? `${window.location.origin}/account` : undefined;
+
     const { data, error } = await supabase.auth.signUp({
       email: payload.email,
       password: payload.password,
-      options: { data: { name: payload.name, phone: payload.phone, state: payload.state, lga: payload.lga } },
+      options: {
+        data: { name: payload.name, phone: payload.phone, state: payload.state, lga: payload.lga },
+        emailRedirectTo,
+      },
     });
     const alreadyRegisteredMessage = 'This email is already in use. Try another one, or log in instead.';
     if (error) {

@@ -140,7 +140,7 @@ function AuthView() {
           className="input"
         />
         {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">{error}</p>}
-        <Button type="submit" size="lg" disabled={pending}>
+        <Button type="submit" size="lg" loading={pending}>
           {pending ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Create Account'}
         </Button>
       </form>
@@ -336,7 +336,7 @@ function SettingsPanel() {
             </select>
           </label>
         </div>
-        <Button type="submit" disabled={saving || name.trim().length < 2 || !state || !lga} className="w-fit">
+        <Button type="submit" loading={saving} disabled={name.trim().length < 2 || !state || !lga} className="w-fit">
           {saving ? 'Saving…' : 'Save Changes'}
         </Button>
         {justSaved && <p className="text-xs font-semibold text-brand-dark">Profile updated.</p>}
