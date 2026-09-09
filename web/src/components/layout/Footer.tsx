@@ -24,7 +24,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-3 gap-8">
           <div className="flex flex-col gap-3">
-            <span className="text-2xl font-extrabold tracking-tight text-white">Jiji</span>
+            <span className="text-2xl font-extrabold tracking-tight text-white">Jsmart</span>
             <p className="max-w-xs text-sm leading-relaxed text-white/60">
               Buy and sell anything, right in your city. Thousands of listings across vehicles,
               property, phones, fashion and more.
@@ -70,7 +70,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} Jiji. Built as a demo marketplace &mdash; not affiliated with jiji.ng.</p>
+          <p>&copy; {new Date().getFullYear()} Jsmart. Built as a demo marketplace &mdash; not affiliated with jiji.ng.</p>
           <p>Prices shown in Nigerian Naira (&#8358;)</p>
         </div>
       </div>

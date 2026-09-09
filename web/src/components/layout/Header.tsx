@@ -12,8 +12,9 @@ export function Header() {
     <header className="sticky top-0 z-20 border-b border-surface-border bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/" className="shrink-0 text-2xl font-extrabold tracking-tight text-brand">
-            Jiji
+          <Link href="/" className="shrink-0" aria-label="Jsmart home">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Jsmart" className="h-9 w-auto" width={236} height={92} />
           </Link>
 
           <LocationPicker />
