@@ -94,8 +94,20 @@ export async function register(payload: RegisterPayload): Promise<User> {
       password: payload.password,
       options: { data: { name: payload.name, phone: payload.phone, state: payload.state, lga: payload.lga } },
     });
-    if (error) throw new Error(error.message);
+    const alreadyRegisteredMessage = 'This email is already in use. Try another one, or log in instead.';
+    if (error) {
+      if (/already registered|already exists|already in use/i.test(error.message)) {
+        throw new Error(alreadyRegisteredMessage);
+      }
+      throw new Error(error.message);
+    }
     if (!data.user) throw new Error('Registration failed.');
+    if (data.user.identities && data.user.identities.length === 0) {
+      // Supabase doesn't return an error for a duplicate signup when email
+      // confirmation is on (to avoid leaking which emails are registered) —
+      // an empty identities array is the documented signal for this case.
+      throw new Error(alreadyRegisteredMessage);
+    }
     if (!data.session) {
       // Email confirmation is required before a session exists. Surface this
       // clearly instead of pretending the account is already logged in.
