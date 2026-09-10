@@ -9,6 +9,7 @@ import { ListingThumb } from '@/components/ui/ListingThumb';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { EditListingButton } from '@/components/ui/EditListingButton';
 import { PromotionBadge, PendingApprovalBadge } from '@/components/ui/Badge';
+import { SellerAvatar } from '@/components/ui/SellerAvatar';
 
 export function ListingCard({ listing, compact, ownerMode }: { listing: Listing; compact?: boolean; ownerMode?: boolean }) {
   const { data: categories } = useCategories();
@@ -48,6 +49,10 @@ export function ListingCard({ listing, compact, ownerMode }: { listing: Listing;
           <span className="truncate">{listing.lga}, {listing.state}</span>
           <span className="shrink-0">&middot; {timeAgo(listing.createdAt)}</span>
         </p>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <SellerAvatar name={listing.sellerName} avatarUrl={listing.sellerAvatarUrl} className="h-4 w-4" textClassName="text-[7px]" />
+          <span className="truncate text-[11px] font-medium text-ink-muted">{listing.sellerName}</span>
+        </div>
       </div>
     </Link>
   );

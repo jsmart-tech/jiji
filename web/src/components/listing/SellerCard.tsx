@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Star, ShieldCheck, Phone, MessageCircle } from 'lucide-react';
 import type { Listing } from '@shared/types';
-import { initialsOf } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
+import { SellerAvatar } from '@/components/ui/SellerAvatar';
 
 export function SellerCard({
   listing,
@@ -20,9 +20,7 @@ export function SellerCard({
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-surface-border bg-white p-4">
       <div className="flex items-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-base font-bold text-brand-dark">
-          {initialsOf(listing.sellerName)}
-        </span>
+        <SellerAvatar name={listing.sellerName} avatarUrl={listing.sellerAvatarUrl} className="h-12 w-12" textClassName="text-base" />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 font-semibold text-ink">
             {listing.sellerName}

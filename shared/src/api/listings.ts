@@ -68,7 +68,12 @@ interface ListingRow {
   seller_phone: string;
   view_count: number;
   created_at: string;
+  seller?: { avatar_url: string | null } | null;
 }
+
+// Joins the seller's live avatar rather than storing a copy on every listing
+// row — avatars can be large base64 images, and this way it's always current.
+const LISTING_SELECT = '*, seller:profiles!seller_id(avatar_url)';
 
 function rowToListing(row: ListingRow): Listing {
   return {
@@ -90,6 +95,7 @@ function rowToListing(row: ListingRow): Listing {
     attributes: row.attributes,
     sellerId: row.seller_id,
     sellerName: row.seller_name,
+    sellerAvatarUrl: row.seller?.avatar_url ?? undefined,
     sellerRating: row.seller_rating,
     isVerifiedSeller: row.is_verified_seller,
     sellerPhone: row.seller_phone,
@@ -105,7 +111,7 @@ function slugify(title: string): string {
 export async function getListings(filters: ListingFilters = {}): Promise<Listing[]> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
-    let query = supabase.from('listings').select('*').eq('status', 'ACTIVE');
+    let query = supabase.from('listings').select(LISTING_SELECT).eq('status', 'ACTIVE');
 
     if (filters.categorySlug) query = query.eq('category_slug', filters.categorySlug);
     if (filters.subcategorySlug) query = query.eq('subcategory_slug', filters.subcategorySlug);
@@ -131,7 +137,7 @@ export async function getListings(filters: ListingFilters = {}): Promise<Listing
 export async function getListingById(id: string): Promise<Listing | null> {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
-    const { data, error } = await supabase.from('listings').select('*').eq('id', id).maybeSingle();
+    const { data, error } = await supabase.from('listings').select(LISTING_SELECT).eq('id', id).maybeSingle();
     if (error) throw new Error(error.message);
     return data ? rowToListing(data as ListingRow) : null;
   }
@@ -204,7 +210,7 @@ export async function getMyListings(sellerId: string): Promise<Listing[]> {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('listings')
-      .select('*')
+      .select(LISTING_SELECT)
       .eq('seller_id', sellerId)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
@@ -221,7 +227,7 @@ export async function getPendingListings(): Promise<Listing[]> {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('listings')
-      .select('*')
+      .select(LISTING_SELECT)
       .eq('status', 'PENDING_REVIEW')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);

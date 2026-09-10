@@ -73,6 +73,7 @@ export interface Listing {
   attributes: ListingAttribute[];
   sellerId: string;
   sellerName: string;
+  sellerAvatarUrl?: string; // the seller's current profile photo, joined live at read time
   sellerRating: number;
   isVerifiedSeller: boolean;
   sellerPhone: string;
@@ -94,7 +95,7 @@ export interface ListingFilters {
 
 export type NewListingInput = Omit<
   Listing,
-  'id' | 'createdAt' | 'viewCount' | 'status' | 'sellerRating' | 'isVerifiedSeller' | 'currency'
+  'id' | 'createdAt' | 'viewCount' | 'status' | 'sellerRating' | 'isVerifiedSeller' | 'currency' | 'sellerAvatarUrl'
 > & {
   currency?: string;
   sellerRating?: number;
