@@ -27,7 +27,7 @@ export function CategoryMenu() {
       {open && categories && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 z-40 mt-2 flex w-[560px] overflow-hidden rounded-xl border border-surface-border bg-white shadow-popover">
+          <div className="absolute right-0 z-40 mt-2 flex w-[560px] max-w-[90vw] overflow-hidden rounded-xl border border-surface-border bg-white shadow-popover">
             <ul className="w-56 border-r border-surface-border py-2">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon];
