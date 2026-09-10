@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ClipboardList, Heart, Settings, LogOut, LogIn, type LucideIcon } from 'lucide-react';
+import { ClipboardList, Heart, Settings, LogOut, LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { NavAvatar } from './NavAvatar';
 
@@ -32,6 +32,9 @@ export function AccountMenu() {
                 <MenuLink href="/account?tab=adverts" icon={ClipboardList} label="My Adverts" onClick={() => setOpen(false)} />
                 <MenuLink href="/account?tab=saved" icon={Heart} label="Saved Ads" onClick={() => setOpen(false)} />
                 <MenuLink href="/account?tab=settings" icon={Settings} label="Settings" onClick={() => setOpen(false)} />
+                {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
+                  <MenuLink href="/admin" icon={ShieldCheck} label="Admin Dashboard" onClick={() => setOpen(false)} />
+                )}
                 <button
                   type="button"
                   onClick={() => {

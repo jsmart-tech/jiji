@@ -122,6 +122,11 @@ create policy "Sellers can update their own listings"
 drop policy if exists "Sellers can delete their own listings" on public.listings;
 create policy "Sellers can delete their own listings"
   on public.listings for delete using (auth.uid() = seller_id);
+drop policy if exists "Admins can update any listing" on public.listings;
+create policy "Admins can update any listing"
+  on public.listings for update using (
+    exists (select 1 from public.profiles where id = auth.uid() and role in ('ADMIN','SUPER_ADMIN'))
+  );
 
 create index if not exists listings_category_idx on public.listings (category_slug);
 create index if not exists listings_seller_idx on public.listings (seller_id);

@@ -190,3 +190,18 @@ export async function updateProfile(
   writeLocalStorage(SESSION_KEY, updated);
   return updated;
 }
+
+// Admin-only in practice (see the admin RLS policy in supabase/schema.sql):
+// every signed-up user. Requires Supabase — there's no meaningful mock
+// fallback for "everyone who has ever signed up" in a client-only demo.
+export async function getAllUsers(): Promise<User[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('member_since', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data as ProfileRow[]).map(profileToUser);
+}

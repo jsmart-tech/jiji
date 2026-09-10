@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { MapPin, Clock, Eye, Pencil } from 'lucide-react';
+import { MapPin, Clock, Eye, Pencil, CreditCard } from 'lucide-react';
 import { useListing } from '@/hooks/useListings';
 import { useCategories } from '@/hooks/useCategories';
 import { useStartChat } from '@/hooks/useChat';
@@ -83,15 +83,27 @@ export default function ListingDetailPage() {
 
       <div className="flex flex-col gap-4 md:sticky md:top-20 md:self-start">
         {isOwner ? (
-          <div className="flex flex-col gap-3 rounded-2xl border border-surface-border bg-white p-4">
-            <p className="text-sm font-semibold text-ink">This is your listing</p>
-            <p className="text-xs text-ink-muted">
-              Buyers will see your phone number and can start a chat with you from this page.
-            </p>
-            <Button onClick={() => router.push(`/listing/${id}/edit`)}>
-              <Pencil className="h-4 w-4" /> Edit Listing
-            </Button>
-          </div>
+          listing.status === 'PENDING_REVIEW' ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-surface-border bg-white p-4">
+              <p className="text-sm font-semibold text-ink">Awaiting payment approval</p>
+              <p className="text-xs text-ink-muted">
+                This {listing.promotionTier} ad won&apos;t be visible to buyers until an admin approves your payment.
+              </p>
+              <Button onClick={() => router.push(`/listing/${id}/payment`)}>
+                <CreditCard className="h-4 w-4" /> Complete Payment
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 rounded-2xl border border-surface-border bg-white p-4">
+              <p className="text-sm font-semibold text-ink">This is your listing</p>
+              <p className="text-xs text-ink-muted">
+                Buyers will see your phone number and can start a chat with you from this page.
+              </p>
+              <Button onClick={() => router.push(`/listing/${id}/edit`)}>
+                <Pencil className="h-4 w-4" /> Edit Listing
+              </Button>
+            </div>
+          )
         ) : (
           <SellerCard listing={listing} onStartChat={handleStartChat} chatPending={startChat.isPending} />
         )}

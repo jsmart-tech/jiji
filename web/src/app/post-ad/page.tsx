@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { usePostAdStore } from '@/store/usePostAdStore';
 import { useCreateListing } from '@/hooks/useListings';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -81,7 +81,11 @@ export default function PostAdPage() {
       {
         onSuccess: (listing) => {
           reset();
-          router.push(`/listing/${listing.id}`);
+          if (listing.promotionTier === 'NONE') {
+            router.push('/account?tab=adverts');
+          } else {
+            router.push(`/listing/${listing.id}/payment`);
+          }
         },
       },
     );
@@ -89,6 +93,12 @@ export default function PostAdPage() {
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6">
+      {createListing.isPending && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90 backdrop-blur-sm">
+          <Loader2 className="h-10 w-10 animate-spin text-brand" />
+          <p className="text-sm font-semibold text-ink">Your ad is being published…</p>
+        </div>
+      )}
       <div className="flex items-center gap-3">
         {step > 0 && (
           <button type="button" onClick={() => setStep(step - 1)} aria-label="Back" className="rounded-full p-1.5 hover:bg-surface-muted">

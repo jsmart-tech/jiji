@@ -8,7 +8,7 @@ import { formatPrice, timeAgo } from '@/lib/format';
 import { ListingThumb } from '@/components/ui/ListingThumb';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { EditListingButton } from '@/components/ui/EditListingButton';
-import { PromotionBadge } from '@/components/ui/Badge';
+import { PromotionBadge, PendingApprovalBadge } from '@/components/ui/Badge';
 
 export function ListingCard({ listing, compact, ownerMode }: { listing: Listing; compact?: boolean; ownerMode?: boolean }) {
   const { data: categories } = useCategories();
@@ -21,10 +21,16 @@ export function ListingCard({ listing, compact, ownerMode }: { listing: Listing;
     >
       <div className="relative aspect-square w-full overflow-hidden">
         <ListingThumb listing={listing} category={category} className="transition-transform duration-300 group-hover:scale-105" />
-        {listing.promotionTier !== 'NONE' && (
+        {listing.status === 'PENDING_REVIEW' ? (
           <div className="absolute left-2 top-2">
-            <PromotionBadge tier={listing.promotionTier} />
+            <PendingApprovalBadge />
           </div>
+        ) : (
+          listing.promotionTier !== 'NONE' && (
+            <div className="absolute left-2 top-2">
+              <PromotionBadge tier={listing.promotionTier} />
+            </div>
+          )
         )}
         {ownerMode ? (
           <EditListingButton listingId={listing.id} className="absolute right-2 top-2" />

@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '@shared/lib/supabaseClient';
 import { STATES } from '@shared/mock/locations.mock';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFavoritesStore } from '@/store/useFavoritesStore';
-import { useListings } from '@/hooks/useListings';
+import { useListings, useMyListings } from '@/hooks/useListings';
 import { ListingGrid } from '@/components/listing/ListingGrid';
 import { Button } from '@/components/ui/Button';
 import { AvatarUpload } from '@/components/ui/AvatarUpload';
@@ -179,8 +179,9 @@ function ProfileDashboard() {
   const { user, logout } = useAuthStore();
   const favoriteIds = useFavoritesStore((s) => s.ids);
   const { data: allListings } = useListings();
-  const myListings = (allListings ?? []).filter((l) => l.sellerId === user!.id);
+  const { data: myListings = [] } = useMyListings(user?.id);
   const saved = (allListings ?? []).filter((l) => favoriteIds.includes(l.id));
+  const pendingCount = myListings.filter((l) => l.status === 'PENDING_REVIEW').length;
 
   return (
     <div className="grid gap-6 md:grid-cols-[280px_minmax(0,1fr)]">
@@ -239,7 +240,13 @@ function ProfileDashboard() {
       <div>
         {tab === 'adverts' && (
           <section>
-            <h1 className="mb-4 text-lg font-bold text-ink">My Adverts</h1>
+            <h1 className="mb-2 text-lg font-bold text-ink">My Adverts</h1>
+            {pendingCount > 0 && (
+              <p className="mb-4 rounded-lg bg-accent/15 px-3 py-2 text-xs font-medium text-ink">
+                {pendingCount} {pendingCount === 1 ? 'ad is' : 'ads are'} pending admin approval — this usually takes
+                a few minutes after we receive your payment evidence.
+              </p>
+            )}
             <ListingGrid
               listings={myListings}
               emptyLabel="There are no adverts yet. Create a new one now!"

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getListings, getListingById, getFeaturedListings, createListing, updateListing,
+  getListings, getListingById, getFeaturedListings, getMyListings, createListing, updateListing,
   type ListingEditableFields,
 } from '@shared/api/listings';
 import type { ListingFilters, NewListingInput } from '@shared/types';
@@ -9,6 +9,14 @@ export function useListings(filters: ListingFilters = {}) {
   return useQuery({
     queryKey: ['listings', filters],
     queryFn: () => getListings(filters),
+  });
+}
+
+export function useMyListings(sellerId: string | undefined) {
+  return useQuery({
+    queryKey: ['listings', 'mine', sellerId],
+    queryFn: () => getMyListings(sellerId!),
+    enabled: !!sellerId,
   });
 }
 

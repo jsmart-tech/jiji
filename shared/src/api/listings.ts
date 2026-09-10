@@ -145,6 +145,10 @@ export async function getFeaturedListings(): Promise<Listing[]> {
 }
 
 export async function createListing(input: NewListingInput): Promise<Listing> {
+  // Premium (paid) tiers go live only after an admin approves payment; free
+  // listings publish immediately.
+  const initialStatus: Listing['status'] = input.promotionTier === 'NONE' ? 'ACTIVE' : 'PENDING_REVIEW';
+
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
     const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -158,6 +162,8 @@ export async function createListing(input: NewListingInput): Promise<Listing> {
       currency: input.currency ?? 'NGN',
       price_type: input.priceType,
       condition: input.condition,
+      status: initialStatus,
+      promotion_tier: input.promotionTier,
       category_slug: input.categorySlug,
       subcategory_slug: input.subcategorySlug ?? null,
       state: input.state,
@@ -184,10 +190,66 @@ export async function createListing(input: NewListingInput): Promise<Listing> {
     id: `local_${Date.now()}`,
     createdAt: new Date().toISOString(),
     viewCount: 0,
-    status: 'ACTIVE',
+    status: initialStatus,
   };
   saveLocalListings([listing, ...getLocalListings()]);
   return listing;
+}
+
+// All of the current user's own listings, regardless of status — unlike
+// getListings(), this includes PENDING_REVIEW ads so "My Adverts" can show
+// what's still awaiting admin approval.
+export async function getMyListings(sellerId: string): Promise<Listing[]> {
+  if (isSupabaseConfigured()) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('seller_id', sellerId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data as ListingRow[]).map(rowToListing);
+  }
+
+  return sortListings(allMockListings().filter((l) => l.sellerId === sellerId));
+}
+
+// Admin-only in practice (see the admin RLS policy in supabase/schema.sql):
+// every listing awaiting payment approval, across all sellers.
+export async function getPendingListings(): Promise<Listing[]> {
+  if (isSupabaseConfigured()) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('status', 'PENDING_REVIEW')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data as ListingRow[]).map(rowToListing);
+  }
+
+  return sortListings(allMockListings().filter((l) => l.status === 'PENDING_REVIEW'));
+}
+
+export async function approveListing(id: string): Promise<Listing> {
+  if (isSupabaseConfigured()) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('listings')
+      .update({ status: 'ACTIVE' })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error || !data) throw new Error(error?.message ?? 'Could not approve listing.');
+    return rowToListing(data as ListingRow);
+  }
+
+  const local = getLocalListings();
+  const index = local.findIndex((l) => l.id === id);
+  if (index === -1) throw new Error('Listing not found.');
+  local[index] = { ...local[index], status: 'ACTIVE' };
+  saveLocalListings(local);
+  return local[index];
 }
 
 export type ListingEditableFields = Partial<
