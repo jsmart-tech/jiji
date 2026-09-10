@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { LogOut, ShieldCheck, ClipboardList, Heart, Settings as SettingsIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { isSupabaseConfigured } from '@shared/lib/supabaseClient';
+import { requestPasswordReset } from '@shared/api/auth';
 import { STATES } from '@shared/mock/locations.mock';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFavoritesStore } from '@/store/useFavoritesStore';
@@ -27,7 +28,7 @@ export default function AccountPage() {
 }
 
 function AuthView() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
   const { login, register } = useAuthStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,6 +38,7 @@ function AuthView() {
   const [lga, setLga] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
   const isSupabaseEnabled = isSupabaseConfigured();
   const selectedState = STATES.find((s) => s.name === state);
 
@@ -46,12 +48,62 @@ function AuthView() {
     setError(null);
     try {
       if (mode === 'login') await login({ email, password });
-      else await register({ name, email, phone, password, state, lga });
+      else if (mode === 'register') await register({ name, email, phone, password, state, lga });
+      else {
+        await requestPasswordReset(email);
+        setResetSent(true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setPending(false);
     }
+  }
+
+  if (mode === 'forgot') {
+    return (
+      <div className="mx-auto flex max-w-sm flex-col gap-5 rounded-2xl border border-surface-border bg-white p-6">
+        <div>
+          <p className="text-lg font-bold text-ink">Reset your password</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Enter your email and we&apos;ll send you a link to set a new password.
+          </p>
+        </div>
+
+        {resetSent ? (
+          <p className="rounded-lg bg-brand-light px-3 py-2 text-sm text-brand-dark">
+            Check your email for a reset link. It may take a minute to arrive — check spam too.
+          </p>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="Email"
+              required
+              className="input"
+            />
+            {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">{error}</p>}
+            <Button type="submit" size="lg" loading={pending}>
+              {pending ? 'Sending…' : 'Send Reset Link'}
+            </Button>
+          </form>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            setMode('login');
+            setError(null);
+            setResetSent(false);
+          }}
+          className="text-center text-sm font-semibold text-brand hover:underline"
+        >
+          Back to Log In
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -139,6 +191,18 @@ function AuthView() {
           required
           className="input"
         />
+        {mode === 'login' && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode('forgot');
+              setError(null);
+            }}
+            className="self-end text-xs font-semibold text-brand hover:underline"
+          >
+            Forgot password?
+          </button>
+        )}
         {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">{error}</p>}
         <Button type="submit" size="lg" loading={pending}>
           {pending ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Create Account'}

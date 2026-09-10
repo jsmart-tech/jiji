@@ -18,6 +18,7 @@ interface AuthState {
   logout: () => void;
   updateAvatar: (avatarUrl: string) => Promise<void>;
   updateProfile: (patch: Partial<Pick<User, 'name' | 'phone' | 'state' | 'lga'>>) => Promise<void>;
+  setUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
@@ -50,4 +51,5 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const updated = await apiUpdateProfile(current, patch);
     set({ user: updated });
   },
+  setUser: (user) => set({ user }),
 }));

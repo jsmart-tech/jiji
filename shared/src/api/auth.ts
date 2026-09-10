@@ -191,6 +191,37 @@ export async function updateProfile(
   return updated;
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Password reset requires a connected account. Try logging in with any details instead.');
+  }
+  const supabase = getSupabase();
+  const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/account/reset-password` : undefined;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateOwnPassword(newPassword: string): Promise<void> {
+  if (!isSupabaseConfigured()) throw new Error('Password reset requires a connected account.');
+  const supabase = getSupabase();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message);
+}
+
+// Reads whatever Supabase session is currently active (e.g. the recovery
+// session created after clicking a password-reset email link) and syncs it
+// into our own session cache, so the rest of the app recognizes the user as
+// logged in without requiring a separate login step.
+export async function getCurrentUser(): Promise<User | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = getSupabase();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
+  const user = await fetchProfile(data.user.id);
+  writeLocalStorage(SESSION_KEY, user);
+  return user;
+}
+
 // Admin-only in practice (see the admin RLS policy in supabase/schema.sql):
 // every signed-up user. Requires Supabase — there's no meaningful mock
 // fallback for "everyone who has ever signed up" in a client-only demo.
