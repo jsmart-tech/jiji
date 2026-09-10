@@ -29,7 +29,7 @@ export class MediaService {
       accessKeyId: configService.get<string>('aws.accessKeyId'),
       secretAccessKey: configService.get<string>('aws.secretAccessKey'),
     });
-    this.bucket = configService.get<string>('aws.s3Bucket', 'jiji-media');
+    this.bucket = configService.get<string>('aws.s3Bucket', 'jsmart-media');
     this.cdnUrl = configService.get<string>('aws.cloudfrontUrl');
     this.presignedExpiry = configService.get<number>('aws.presignedUrlExpiry', 3600);
   }

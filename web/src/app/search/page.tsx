@@ -15,7 +15,7 @@ function SearchResults() {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center text-ink-muted">
         <Search className="h-10 w-10" strokeWidth={1.5} />
-        <p className="text-sm font-medium">Search Jiji for cars, phones, property and more.</p>
+        <p className="text-sm font-medium">Search Jsmart for cars, phones, property and more.</p>
       </div>
     );
   }

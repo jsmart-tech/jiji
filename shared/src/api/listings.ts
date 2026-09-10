@@ -3,7 +3,7 @@ import { MOCK_LISTINGS } from '../mock/listings.mock';
 import { readLocalStorage, writeLocalStorage } from '../lib/storage';
 import type { Listing, ListingFilters, NewListingInput } from '../types';
 
-const LOCAL_LISTINGS_KEY = 'jiji_web_local_listings';
+const LOCAL_LISTINGS_KEY = 'jsmart_web_local_listings';
 
 function getLocalListings(): Listing[] {
   return readLocalStorage<Listing[]>(LOCAL_LISTINGS_KEY, []);

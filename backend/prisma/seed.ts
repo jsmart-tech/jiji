@@ -121,7 +121,7 @@ const PROMOTION_PLANS = [
   },
   {
     name: 'VIP', tier: PromotionTier.VIP, price: 5000, currency: 'NGN', durationDays: 60,
-    description: 'Maximum visibility everywhere on Jiji.',
+    description: 'Maximum visibility everywhere on Jsmart.',
     features: ['Top of search & category', 'VIP badge', 'Listed for 60 days'],
   },
 ];

@@ -1,8 +1,8 @@
 {
-  "name": "jiji-mobile",
+  "name": "jsmart-mobile",
   "version": "1.0.0",
   "main": "expo-router/entry",
-  "description": "Jiji Classifieds Marketplace — React Native Mobile App",
+  "description": "Jsmart Classifieds Marketplace — React Native Mobile App",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",

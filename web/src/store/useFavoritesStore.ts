@@ -17,6 +17,6 @@ export const useFavoritesStore = create<FavoritesState>()(
           ids: s.ids.includes(id) ? s.ids.filter((x) => x !== id) : [...s.ids, id],
         })),
     }),
-    { name: 'jiji_web_favorites' },
+    { name: 'jsmart_web_favorites' },
   ),
 );

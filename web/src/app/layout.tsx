@@ -14,7 +14,7 @@ const sans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Jiji — Buy & Sell Anything',
+  title: 'Jsmart — Buy & Sell Anything',
   description: 'Nigeria-style classifieds marketplace: vehicles, real estate, phones, electronics, fashion and jobs.',
 };
 

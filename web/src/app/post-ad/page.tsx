@@ -47,7 +47,7 @@ export default function PostAdPage() {
     return (
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-surface-border bg-white py-16 text-center">
         <p className="text-sm font-semibold text-ink">Log in to post an ad</p>
-        <p className="max-w-xs text-sm text-ink-muted">Create a free account to start selling on Jiji.</p>
+        <p className="max-w-xs text-sm text-ink-muted">Create a free account to start selling on Jsmart.</p>
         <Button onClick={() => router.push('/account')}>Go to Login</Button>
       </div>
     );

@@ -34,7 +34,7 @@ export class OtpService {
     if (this.configService.get('app.nodeEnv') === 'development') {
       this.logger.debug(`📱 OTP for ${phone}: ${code}`);
     } else {
-      await this.sendSms(phone, `Your Jiji verification code is: ${code}. Valid for ${expiryMinutes} minutes.`);
+      await this.sendSms(phone, `Your Jsmart verification code is: ${code}. Valid for ${expiryMinutes} minutes.`);
     }
   }
 

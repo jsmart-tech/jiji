@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Jiji",
-    "slug": "jiji-marketplace",
+    "name": "Jsmart",
+    "slug": "jsmart-marketplace",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "jiji",
+    "scheme": "jsmart",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -14,13 +14,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ng.jiji.marketplace",
+      "bundleIdentifier": "ng.jsmart.marketplace",
       "infoPlist": {
-        "NSCameraUsageDescription": "Jiji needs camera access to take photos for your listings.",
-        "NSPhotoLibraryUsageDescription": "Jiji needs photo library access to upload listing images.",
-        "NSLocationWhenInUseUsageDescription": "Jiji uses your location to show nearby listings.",
-        "NSLocationAlwaysUsageDescription": "Jiji uses your location to show nearby listings.",
-        "NSMicrophoneUsageDescription": "Jiji needs microphone access for video listings."
+        "NSCameraUsageDescription": "Jsmart needs camera access to take photos for your listings.",
+        "NSPhotoLibraryUsageDescription": "Jsmart needs photo library access to upload listing images.",
+        "NSLocationWhenInUseUsageDescription": "Jsmart uses your location to show nearby listings.",
+        "NSLocationAlwaysUsageDescription": "Jsmart uses your location to show nearby listings.",
+        "NSMicrophoneUsageDescription": "Jsmart needs microphone access for video listings."
       }
     },
     "android": {
@@ -28,7 +28,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FF6B35"
       },
-      "package": "ng.jiji.marketplace",
+      "package": "ng.jsmart.marketplace",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -45,9 +45,9 @@
     "plugins": [
       "expo-router",
       ["expo-notifications", { "icon": "./assets/images/notification-icon.png", "color": "#FF6B35" }],
-      ["expo-image-picker", { "photosPermission": "Allow Jiji to access your photos." }],
-      ["expo-location", { "locationAlwaysAndWhenInUsePermission": "Allow Jiji to use your location." }],
-      ["expo-camera", { "cameraPermission": "Allow Jiji to access your camera." }]
+      ["expo-image-picker", { "photosPermission": "Allow Jsmart to access your photos." }],
+      ["expo-location", { "locationAlwaysAndWhenInUsePermission": "Allow Jsmart to use your location." }],
+      ["expo-camera", { "cameraPermission": "Allow Jsmart to access your camera." }]
     ],
     "experiments": {
       "typedRoutes": true

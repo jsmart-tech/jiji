@@ -20,7 +20,7 @@ export default function WelcomeScreen() {
             <View style={styles.logoCircle}>
               <Text style={styles.logoText}>J</Text>
             </View>
-            <Text style={styles.appName}>Jiji</Text>
+            <Text style={styles.appName}>Jsmart</Text>
             <Text style={styles.tagline}>Nigeria's #1 Marketplace</Text>
           </View>
 

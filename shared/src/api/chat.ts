@@ -3,8 +3,8 @@ import { MOCK_ROOMS, MOCK_MESSAGES, SIMULATED_REPLIES } from '../mock/chat.mock'
 import { readLocalStorage, writeLocalStorage } from '../lib/storage';
 import type { ChatRoom, ChatMessage } from '../types';
 
-const ROOMS_KEY = 'jiji_web_chat_rooms';
-const MESSAGES_KEY = 'jiji_web_chat_messages';
+const ROOMS_KEY = 'jsmart_web_chat_rooms';
+const MESSAGES_KEY = 'jsmart_web_chat_messages';
 
 const loadRooms = (): ChatRoom[] => readLocalStorage(ROOMS_KEY, MOCK_ROOMS);
 const saveRooms = (rooms: ChatRoom[]) => writeLocalStorage(ROOMS_KEY, rooms);

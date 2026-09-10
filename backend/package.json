@@ -1,8 +1,8 @@
 {
-  "name": "jiji-backend",
+  "name": "jsmart-backend",
   "version": "1.0.0",
-  "description": "Jiji Classifieds Marketplace — NestJS Backend API",
-  "author": "Jiji Engineering Team",
+  "description": "Jsmart Classifieds Marketplace — NestJS Backend API",
+  "author": "Jsmart Engineering Team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

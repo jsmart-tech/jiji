@@ -2,7 +2,7 @@ import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { readLocalStorage, writeLocalStorage } from '../lib/storage';
 import type { AuthCredentials, RegisterPayload, User } from '../types';
 
-const SESSION_KEY = 'jiji_web_session';
+const SESSION_KEY = 'jsmart_web_session';
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/);

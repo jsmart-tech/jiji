@@ -1,8 +1,8 @@
 {
-  "name": "jiji-web",
+  "name": "jsmart-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Jiji Classifieds Marketplace — Next.js web app",
+  "description": "Jsmart Classifieds Marketplace — Next.js web app",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",

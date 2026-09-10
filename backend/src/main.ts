@@ -49,7 +49,7 @@ async function bootstrap() {
   // ─── Swagger Documentation ───────────────────────────────────
   if (configService.get('NODE_ENV') !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('Jiji Classifieds API')
+      .setTitle('Jsmart Classifieds API')
       .setDescription('Cross-platform classifieds marketplace REST API')
       .setVersion('1.0')
       .addBearerAuth()
@@ -70,7 +70,7 @@ async function bootstrap() {
   }
 
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Jiji API running on http://0.0.0.0:${port}/${apiPrefix}`);
+  console.log(`🚀 Jsmart API running on http://0.0.0.0:${port}/${apiPrefix}`);
   console.log(`📚 Swagger docs: http://0.0.0.0:${port}/docs`);
 }
 

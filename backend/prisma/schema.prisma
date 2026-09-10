@@ -1,5 +1,5 @@
 // =============================================================================
-// Prisma Schema — Jiji Classifieds Marketplace
+// Prisma Schema — Jsmart Classifieds Marketplace
 // =============================================================================
 
 generator client {

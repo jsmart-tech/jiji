@@ -1,2 +1,2 @@
-# jiji
-my jiji app testing
+# jsmart
+my jsmart app testing

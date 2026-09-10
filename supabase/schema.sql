@@ -1,5 +1,5 @@
 -- =============================================================================
--- Jiji — Supabase schema
+-- Jsmart — Supabase schema
 -- Run this once in your Supabase project's SQL Editor (Dashboard → SQL Editor
 -- → New query → paste this whole file → Run). Safe to re-run: every statement
 -- is idempotent (create-if-not-exists / on-conflict-do-nothing).
