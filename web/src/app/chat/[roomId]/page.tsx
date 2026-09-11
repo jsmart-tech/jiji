@@ -32,7 +32,7 @@ export default function ChatThreadPage() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-2xl flex-col overflow-hidden rounded-2xl border border-surface-border bg-white sm:h-[calc(100vh-6rem)]">
+    <div className="mx-auto flex h-[calc(100vh-10rem)] max-w-2xl flex-col overflow-hidden rounded-2xl border border-surface-border bg-white sm:h-[calc(100vh-6rem)]">
       <div className="flex items-center gap-2 border-b border-surface-border px-4 py-3">
         <button type="button" onClick={() => router.push('/chat')} aria-label="Back" className="rounded-full p-1.5 hover:bg-surface-muted">
           <ChevronLeft className="h-5 w-5" />

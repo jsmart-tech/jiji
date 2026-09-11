@@ -17,6 +17,11 @@ const ITEMS = [
 export function BottomNav() {
   const pathname = usePathname();
 
+  // Hide while inside an active chat thread — the fixed nav bar would
+  // otherwise overlap the message input at the bottom of the screen, and no
+  // chat app keeps tab navigation visible while you're mid-conversation.
+  if (/^\/chat\/[^/]+/.test(pathname)) return null;
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-surface-border bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
       {ITEMS.map(({ href, label, icon: Icon, variant }) => {
