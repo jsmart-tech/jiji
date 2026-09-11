@@ -2,6 +2,7 @@
 
 import { Camera, X } from 'lucide-react';
 import { usePostAdStore } from '@/store/usePostAdStore';
+import { resizeImageToDataUrl } from '@/lib/image';
 
 const MAX_PHOTOS = 8;
 
@@ -12,13 +13,20 @@ export function PhotosStep() {
     if (!fileList) return;
     const files = Array.from(fileList).slice(0, MAX_PHOTOS - draft.images.length);
     files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          usePostAdStore.setState((s) => ({ draft: { ...s.draft, images: [...s.draft.images, reader.result as string] } }));
-        }
-      };
-      reader.readAsDataURL(file);
+      resizeImageToDataUrl(file, 1200)
+        .then((dataUrl) => {
+          usePostAdStore.setState((s) => ({ draft: { ...s.draft, images: [...s.draft.images, dataUrl] } }));
+        })
+        .catch(() => {
+          // Fall back to the original file rather than silently dropping the photo.
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof reader.result === 'string') {
+              usePostAdStore.setState((s) => ({ draft: { ...s.draft, images: [...s.draft.images, reader.result as string] } }));
+            }
+          };
+          reader.readAsDataURL(file);
+        });
     });
   }
 

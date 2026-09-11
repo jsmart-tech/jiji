@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Camera } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { initialsOf } from '@/lib/format';
+import { resizeImageToDataUrl } from '@/lib/image';
 import type { User } from '@shared/types';
 
 export function AvatarUpload({ user }: { user: User }) {
@@ -11,18 +12,15 @@ export function AvatarUpload({ user }: { user: User }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  function handleFile(file: File | undefined) {
+  async function handleFile(file: File | undefined) {
     if (!file) return;
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      if (typeof reader.result === 'string') {
-        await updateAvatar(reader.result);
-      }
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 320);
+      await updateAvatar(dataUrl);
+    } finally {
       setUploading(false);
-    };
-    reader.onerror = () => setUploading(false);
-    reader.readAsDataURL(file);
+    }
   }
 
   return (
